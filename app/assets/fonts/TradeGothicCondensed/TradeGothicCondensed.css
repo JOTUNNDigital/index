@@ -1,0 +1,28 @@
+@font-face {
+    font-family: "TradeGothic";
+    src: url("TradeGothicCondensed.woff2") format("woff2"), url("TradeGothicCondensed.woff") format("woff");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TradeGothic";
+    src: url("TradeGothicCondensed-Bold.woff2") format("woff2"), url("TradeGothicCondensed-Bold.woff") format("woff");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TradeGothic";
+    src: url("TradeGothicCondensed.woff2") format("woff2"), url("TradeGothicCondensed.woff") format("woff");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "TradeGothic";
+    src: url("TradeGothicCondensed-Bold.woff2") format("woff2"), url("TradeGothicCondensed-Bold.woff") format("woff");
+    font-weight: 500;
+    font-style: normal;
+}
+

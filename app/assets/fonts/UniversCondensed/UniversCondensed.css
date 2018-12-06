@@ -2,7 +2,7 @@
 {
 	font-family: "Univers Condensed";
 	src: url("UniversCondensed-Regular.woff") format("woff2"), url("UniversCondensed-Regular.woff") format("woff");
-	font-weight: normal;
+	font-weight: 400;
 	font-style: normal;
 }
 
@@ -10,6 +10,6 @@
 {
 	font-family: "Univers Condensed";
 	src: url("UniversCondensed-Bold.woff") format("woff2"), url("UniversCondensed-Bold.woff") format("woff");
-	font-weight: 600;
+	font-weight: 700;
 	font-style: normal;
 }

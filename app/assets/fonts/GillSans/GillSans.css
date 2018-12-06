@@ -2,7 +2,7 @@
 {
 	font-family: "Gill Sans";
 	src: url("GillSans-Regular.woff2") format("woff2"), url("GillSans-Regular.woff") format("woff");
-	font-weight: normal;
+	font-weight: 400;
 	font-style: normal
 }
 
@@ -10,7 +10,7 @@
 {
 	font-family: "Gill Sans";
 	src: url("GillSans-Italic.woff2") format("woff2"), url("GillSans-Italic.woff") format("woff");
-	font-weight: normal;
+	font-weight: 400;
 	font-style: italic
 }
 
@@ -18,7 +18,7 @@
 {
 	font-family: "Gill Sans";
 	src: url("GillSans-Bold.woff2") format("woff2"), url("GillSans-Bold.woff") format("woff");
-	font-weight: bold;
+	font-weight: 700;
 	font-style: normal
 }
 
@@ -26,6 +26,6 @@
 {
 	font-family: "Gill Sans";
 	src: url("GillSans-Bold-Italic.woff2") format("woff2"), url("GillSans-Bold-Italic.woff") format("woff");
-	font-weight: bold;
+	font-weight: 700;
 	font-style: italic
 }

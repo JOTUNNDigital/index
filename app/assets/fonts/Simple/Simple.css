@@ -1,28 +1,32 @@
-@font-face {
+@font-face
+{
     font-family: "Simple";
     src: url("Simple-Oblique.woff2") format("woff2"), url("Simple-Oblique.woff") format("woff");
-    font-weight: normal;
+    font-weight: 400;
     font-style: italic;
 }
 
-@font-face {
+@font-face
+{
     font-family: "Simple";
     src: url("Simple-Bold.woff2") format("woff2"), url("Simple-Bold.woff") format("woff");
-    font-weight: bold;
+    font-weight: 700;
     font-style: normal;
 }
 
-@font-face {
+@font-face
+{
     font-family: "Simple";
     src: url("Simple.woff2") format("woff2"), url("Simple.woff") format("woff");
-    font-weight: normal;
+    font-weight: 400;
     font-style: normal;
 }
 
-@font-face {
+@font-face
+{
     font-family: "Simple";
     src: url("Simple-BoldOblique.woff2") format("woff2"), url("Simple-BoldOblique.woff") format("woff");
-    font-weight: bold;
+    font-weight: 700;
     font-style: italic;
 }
 

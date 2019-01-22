@@ -1,0 +1,364 @@
+<!index feature>
+
+<meta name="id" content="dialog">
+<meta name="events" content="create,close,show,hide">
+
+<style>
+	:root
+	{
+		--dialog-bg: #fff;
+		--dialog-color: #222;
+		--dialog-shadow: rgba(0,0,0,.05) 0 0 25px;
+	}
+
+	dialog.app-dialog[role~="dialog"]
+	{
+		background: var(--dialog-bg);
+		opacity: 0;
+		transition: all .25s ease;
+
+		color: var(--dialog-color);
+		letter-spacing: .02em;
+		text-align: left;
+
+		align-items: stretch;
+		border: var(--subdued) solid 0;
+		display: flex;
+		flex-direction: column;
+		margin: 0;
+		padding: 0;
+		position: fixed;
+		 top: 0;
+		 left: 0;
+		 z-index: 110;
+
+		height: 100%;
+		width: 100%;
+	}
+
+	dialog.app-dialog[role~="dialog"][open]
+	{
+		opacity: 1;
+	}
+
+	html:not(.airlock) dialog.app-dialog[role~="dialog"],
+	html.airlock :not(dialog.app-dialog[role~="dialog"]),
+	html.airlock :not(dialog.app-dialog[role~="dialog"] *)
+	{
+		pointer-events: none;
+	}
+
+	dialog.app-dialog[role~="dialog"] header
+	{
+		transition: all .25s ease;
+
+		text-transform: uppercase;
+
+		box-sizing: border-box;
+		display: block;
+		flex: 0 1 auto;
+		justify-self: flex-start;
+		overflow: hidden;
+		padding: 4px calc(100% / 6) 4px 20px;
+	}
+
+	dialog.app-dialog[role~="dialog"] section.content
+	{
+		text-align: left;
+
+		box-sizing: border-box;
+		display: block;
+		flex: 0 1 auto;
+		flex-direction: column;
+		overflow: hidden;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		padding: 20px;
+
+		max-height: 100%;
+	}
+
+	@media screen and (min-width: 1024px)
+	{
+		dialog.app-dialog[role~="dialog"]
+		{
+			box-shadow: var(--dialog-shadow);
+			transform: translate(-50%,-50%);
+
+			border-width: 2px;
+			padding: 2vmin;
+			position: fixed;
+			 top: 50%;
+			 left: 50%;
+
+			height: auto;
+			max-height: 75vh;
+			width: 75vw;
+		}
+	}
+
+	dialog.app-dialog[role~="dialog"] [data-name~="close-button"]
+	{
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+		tap-highlight-color: transparent;
+		transition: all .25s ease;
+
+		font: 700 0/1 sans-serif;
+		vertical-align: middle;
+
+		border: 0;
+		box-sizing: border-bpx;
+		display: inline-block;
+		outline: none;
+		padding: 10px;
+		position: absolute;
+		 top: 0;
+		 right: 0;
+		 z-index: 113;
+	}
+
+	dialog.app-dialog[role~="dialog"] [data-name~="close-button"]:before
+	{
+		font-size: 40px;
+		line-height: 1;
+
+		content: "\00d7";
+	}
+</style>
+
+<script>
+	App.[@feature.id].create = function(options)
+	{
+		var failure = true,
+		settings = {
+			airlock: true,
+			closeButton: true,
+			header: null,
+			content: null,
+			url: null,
+			classes: [],
+			id: null
+		},
+
+		template = App.[@feature.id].templates.dialog;
+		settings = settings.extend(options);
+
+		settings.classes = (typeof settings.classes === "string") ? [settings.classes] : (typeof settings.classes === "object") ? settings.classes : [];
+
+		[
+			"dialog",
+			"app-dialog"
+		].forEach(function(classe)
+		{
+			settings.classes.push(classe);
+		});
+
+		template = template.cloneNode(true);
+		template = template.content.querySelector("[role='dialog']");
+
+		var verify = function()
+		{
+			if(!template.closest("body")) window.requestAnimationFrame(verify);
+
+			else
+			{
+				settings.classes.forEach(function(classe)
+				{
+					template.classList.add(classe);
+				});
+
+				template.querySelectorAll(".close").forEach(function(element)
+				{
+					element.addEventListener("click", function(event)
+					{
+						App.[@feature.id].close(template);
+					});
+				});
+
+				window.setTimeout(function()
+				{
+					template.setAttribute("open", "");
+				}, 10);
+
+				template.dispatchEvent(App.[@feature.id].events.create);
+			}
+		}
+
+		if(!template.querySelector("[data-name='content']")) console.warn("Could not create dialog: content section missing in template.");
+
+		else if(!settings.content && !settings.url) console.warn("Could not create dialog: either \"content\" or \"url\" pair are required.");
+
+		else
+		{
+			var content = template.querySelector("[data-name='content']");
+
+			if(settings.closeButton && !template.querySelector("[data-name='close-button']")) console.warn("Dialog created without close button (missing in template).");
+
+			if(settings.url)
+			{
+				if(!/^https?:\/\//gi.test(settings.url)) settings.url = "http://" + settings.url;
+
+				var net = new XMLHttpRequest();
+
+				net.addEventListener("load", function(event)
+				{
+					switch(event.target.status)
+					{
+						case 200:
+							failure = false;
+
+							content.innerHTML = event.target.response;
+
+							template.querySelector("[data-name='header']").remove();
+
+							if(settings.airlock)
+							{
+								template.classList.add("has-airlock");
+
+								document.documentElement.classList.add("airlock");
+							}
+
+							if(!settings.closeButton && template.querySelector("[data-name='close-button']")) template.querySelector("[data-name='close-button']").remove();
+
+							if(settings.id) template.id = settings.id;
+
+							document.body.appendChild(template);
+
+							verify();
+
+							break;
+
+						case 404:
+							console.warn("Could not create dialog: URL not found.");
+
+							break;
+
+						default:
+							console.warn("Could not create dialog: Unknown network error.");
+
+							break;
+					}
+				});
+
+				net.addEventListener("error", function(event)
+				{
+					console.warn("Could not create dialog: Local network error.");
+				});
+
+				net.open("GET", settings.url, true);
+				net.setRequestHeader("Access-Control-Allow-Origin", "*");
+				net.setRequestHeader("Content-type", "text/html; charset=utf-8");
+				net.send();
+			}
+
+			else
+			{
+				if(typeof settings.content !== "object") content.innerHTML = settings.content;
+				else if(settings.content.outerHTML) content.innerHTML = settings.content.outerHTML;
+				else if(settings.content.tagName) content.innerHTML = settings.content.innerHTML;
+				else content.innerHTML = settings.content.outerHTML;
+
+				if(settings.header)
+				{
+					if(!template.querySelector("[data-name='header']")) console.warn("Dialog created without header (missing in template).");
+
+					else
+					{
+						var header = template.querySelector("[data-name='header']");
+
+						if(typeof settings.header !== "object") header.innerHTML = settings.header;
+						else if(settings.header.outerHTML) header.innerHTML = settings.header.outerHTML;
+						else if(settings.header.tagName) header.innerHTML = settings.header.innerHTML;
+						else header.innerHTML = settings.header.outerHTML;
+					}
+				}
+
+				else
+				{
+					if(template.querySelector("[data-name='header']")) template.querySelector("[data-name='header']").remove();
+				}
+
+				if(settings.airlock)
+				{
+					template.classList.add("has-airlock");
+
+					document.documentElement.classList.add("airlock");
+				}
+
+				if(!settings.closeButton && template.querySelector("[data-name='close-button']")) template.querySelector("[data-name='close-button']").remove();
+
+				if(settings.id) template.id = settings.id;
+
+				document.body.appendChild(template);
+
+				verify();
+			}
+		}
+	};
+
+	App.[@feature.id].close = function(target)
+	{
+		var transition = (window.getComputedStyle(target).transitionDuration !== "") ? window.getComputedStyle(target).transitionDuration : 0;
+		transition = (/,/gi.test(transition)) ? transition.replace(/\s?,\s?/gi,",").split(",")[0] : transition;
+		transition = (transition.match(/s$/gi)) ? (Number(transition.replace(/s$/gi,"")) * 1000) : transition;
+
+		target = (target) ? target : document.querySelector("[role~='dialog']:last-of-type");
+
+		if(target && target.tagName && /dialog/gi.test(target.getAttribute("role")))
+		{
+			if(target.hasAttribute("open")) target.removeAttribute("open", "");
+
+			window.setTimeout(function()
+			{
+				if(!document.querySelector("[role~='dialog'][open]")) document.documentElement.classList.remove("airlock");
+
+				target.remove();
+
+				target.dispatchEvent(App.[@feature.id].events.close);
+			}, transition);
+		}
+	};
+
+	App.[@feature.id].show = function(target)
+	{
+		if(target && target.tagName && /dialog/gi.test(target.getAttribute("role")))
+		{
+			if(target.getAttribute("open"))
+			{
+				target.setAttribute("open","");
+
+				if(target.classList.contains("has-airlock")) document.documentElement.classList.add("airlock");
+
+				target.dispatchEvent(App.[@feature.id].events.show);
+			}
+		}
+
+		else console.warn("Dialog could not be shown: target doesn't exist.");
+	};
+
+	App.[@feature.id].hide = function(target)
+	{
+		if(target && target.tagName && /dialog/gi.test(target.getAttribute("role")))
+		{
+			if(!target.getAttribute("open"))
+			{
+				target.removeAttribute("open");
+
+				if(!document.querySelector("[role~='dialog'][open]")) document.documentElement.classList.remove("airlock");
+
+				target.dispatchEvent(App.[@feature.id].events.hide);
+			}
+		}
+
+		else console.warn("Dialog could not be hidden: target doesn't exist.");
+	};
+</script>
+
+<template id="dialog">
+	<dialog id class="dialog" role="dialog">
+		<a data-name="close-button" class="close" title="close" tabindex="0">Close</a>
+		<header data-name="header" class="header"></header>
+		<section data-name="content" class="content"></section>
+	</dialog>
+</template>

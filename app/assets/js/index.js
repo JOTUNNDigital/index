@@ -1,29 +1,6 @@
-App.events = [
-	{
-		target: document,
-		trigger: "navigate",
-		event: function _callback(event)
-		{
-			if(App.track.name == "home")
-			{
-				
-			}
-		}
-	},
-	{
-		target: document,
-		trigger: "click",
-		event: function _callback(event)
-		{
-			if(App.track.name == "home")
-			{
-				
-			}
-		}
-	}
-];
+console.log("Test");
 
-App.events.forEach(function(event,index)
+document.addEventListener("click", function(event)
 {
-	event.target.addEventListener(event.trigger, event.event, true);
+	console.log(event);
 });

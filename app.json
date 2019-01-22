@@ -1,0 +1,31 @@
+{
+	"--envs": [
+		"http://index.local/",
+		"https://demo.jotunn.org/index/",
+		"https://gitcdn.xyz/repo/JOTUNNDigital/index-cdn/master/"
+	],
+
+	"repository": "http://index.local/",
+	"filesystem": {
+		"base": "http://index.local/",
+
+		"assets": "app/assets",
+		"content": "app/content",
+		"vendor": "app/vendor"
+	},
+	"features": [
+		"swipe",
+		"net",
+		"dialog"
+	],
+	"routes": [
+		{
+			"path": "/",
+			"href": "[@filesystem.content]/"
+		},
+		{
+			"path": "/test",
+			"href": "[@filesystem.content]/test.html"
+		}
+	]
+}

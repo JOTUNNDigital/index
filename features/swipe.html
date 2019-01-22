@@ -1,0 +1,78 @@
+<!index feature>
+
+<meta name="id" content="swipe">
+<meta name="events" content="swipe">
+
+<script>
+	App.[@feature.id].d = [];
+	App.[@feature.id].v = 75;
+	App.[@feature.id].supported = (function()
+	{
+		try
+		{  
+			document.createEvent("TouchEvent");  
+
+			return true;  
+		}
+
+		catch(error)
+		{  
+			return false;  
+		}  
+	})();
+
+	document.addEventListener("touchstart", function(event)
+	{
+		App.[@feature.id].d[0] = [
+			event.touches[0].clientX,
+			event.touches[0].clientY
+		];
+
+		document.documentElement.classList.add("touching");
+	}, false);
+	
+	document.addEventListener("touchmove", function(event)
+	{
+		App.[@feature.id].d[1] = [
+			event.touches[0].clientX,
+			event.touches[0].clientY
+		];
+
+		if(
+			((App.[@feature.id].d[1][0] - App.[@feature.id].v) > App.[@feature.id].d[0][0]) || 
+			(App.[@feature.id].d[0][0] > (App.[@feature.id].d[1][0] + App.[@feature.id].v)) || 
+			((App.[@feature.id].d[1][1] - App.[@feature.id].v) > App.[@feature.id].d[0][1]) || 
+			(App.[@feature.id].d[0][1] > (App.[@feature.id].d[1][1] + App.[@feature.id].v))
+		)
+		{
+			App.[@feature.id].d[2] = true;
+
+			document.documentElement.classList.add("swiping");
+		}
+	}, false);
+
+	document.addEventListener("touchend", function(event)
+	{
+		if(App.[@feature.id].d[2])
+		{
+			App.[@feature.id].events.swipe.direction = [];
+
+			if((App.[@feature.id].d[1][1] - App.[@feature.id].v) > App.[@feature.id].d[0][1]) App.[@feature.id].events.swipe.direction.push("down");
+			else if(App.[@feature.id].d[0][1] > (App.[@feature.id].d[1][1] + App.[@feature.id].v)) App.[@feature.id].events.swipe.direction.push("up");
+
+			if((App.[@feature.id].d[1][0] - App.[@feature.id].v) > App.[@feature.id].d[0][0]) App.[@feature.id].events.swipe.direction.push("right");
+			else if(App.[@feature.id].d[0][0] > (App.[@feature.id].d[1][0] + App.[@feature.id].v)) App.[@feature.id].events.swipe.direction.push("left");
+
+			App.[@feature.id].events.swipe.direction = App.[@feature.id].events.swipe.direction.join(" ");
+			App.[@feature.id].d.pop();
+
+			document.documentElement.classList.remove("swiping");
+
+			event.target.dispatchEvent(App.[@feature.id].events.swipe);
+		}
+
+		document.documentElement.classList.remove("touching");
+
+		App.[@feature.id].d = [];
+	}, false);
+</script>

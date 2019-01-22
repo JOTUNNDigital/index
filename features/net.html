@@ -1,0 +1,42 @@
+<!index feature>
+
+<meta name="id" content="net">
+<meta name="events" content="net">
+
+<script>
+	App.[@feature.id].rest = function(options)
+	{
+		var failure = true,
+		settings = {
+			data: {},
+			url: null,
+			before: function(args){},
+			after: function(args){}
+		};
+
+		settings = settings.extend(options);
+		
+		if(typeof settings.data != "object" || settings.data.constructor != Object) console.warn("REST request failed: 'data' must be an object.");
+
+		else if(typeof settings.url != "string") console.warn("REST request failed: 'url' must be a string.");
+
+		else
+		{
+			var net = new XMLHttpRequest();
+			
+			if(settings.before && typeof settings.before == "function") settings.before();
+
+			net.addEventListener("loadend", function(event)
+			{
+				if(settings.after && typeof settings.after == "function") settings.after(event);
+				
+				target.dispatchEvent(App.[@feature.id].events.net);
+			});
+
+			net.open("POST", settings.url, true);
+			net.setRequestHeader("Access-Control-Allow-Origin", "*");
+			net.setRequestHeader("Content-type", "application/json");
+			net.send(JSON.stringify(settings.data));
+		}
+	};
+</script>

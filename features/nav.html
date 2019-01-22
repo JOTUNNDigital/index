@@ -1,0 +1,185 @@
+<!index feature>
+
+<meta name="id" content="nav">
+<meta name="events" content="create,add,remove">
+
+<style>
+	
+</style>
+
+<script>
+	App.nav.create = function(options)
+	{
+		var settings = {
+			target: null,
+			replace: false,
+			classes: [],
+			items: null
+		};
+
+		if((typeof options === "object" && options.tagName) || (typeof options === "string" && document.querySelector(options)))
+		{
+			options = (typeof options === "object") ? options : document.querySelector(options);
+			options = {
+				target: options
+			};
+		}
+
+		settings = settings.extend(options);
+		settings.classes = (typeof settings.classes === "string") ? [settings.classes] : (typeof settings.classes === "object") ? settings.classes : [];
+
+		if(!settings.target || !settings.target.tagName) console.warn("Could not create nav: \"target\" pair invalid or not set.");
+
+		else
+		{
+			var template = document.querySelector("template[data-name='app-nav']"),
+			items = [];
+
+			var content = document.createElement("code");
+			content.innerHTML = template.innerHTML;
+
+			if(!content.querySelector("[role='navigation']")) console.warn("Could not create nav: element matching [role='navigation'] is missing.");
+
+			else
+			{
+				var nav = content.querySelector("[role='navigation']");
+
+				nav.classList.add("app");
+				nav.classList.add("app-nav");
+
+				var navButton = content.querySelector("[role='navigation-trigger']");
+
+				if(navButton)
+				{
+					navButton.removeAttribute("role");
+					navButton.classList.add("app");
+					navButton.classList.add("nav-trigger");
+				}
+				
+				if(!settings.items) console.warn("Could not create nav: \"items\" pair is required.");
+				
+				else
+				{
+					if(typeof settings.items !== "object") console.warn("Could not create nav: \"items\" is not an object.");
+					
+					else
+					{
+						if(!settings.items.forEach) console.warn("Could not create nav: \"items\" is an object, but not an array.");
+						
+						else settings.items.forEach(function(entry,index)
+						{
+							if(!entry.label) console.warn("Nav entry [" + index +  "] added but incomplete: \"label\" pair missing.");
+
+							if(!entry.path) console.warn("Could not add nav entry [" + index +  "]: \"path\" pair missing.");
+							
+							else
+							{
+								var itemTemplate = content.querySelector("[data-name='nav-item']").cloneNode(true);
+								itemTemplate = (itemTemplate.closest("a")) ? itemTemplate.closest("a") : itemTemplate.querySelector("a");
+
+								if(!itemTemplate) console.warn("Could not add nav entry [" + index +  "]: template has no usable <a> element(s).");
+
+								else
+								{
+									var labelNode = (itemTemplate.closest(".label")) ? itemTemplate.closest(".label") : itemTemplate.querySelector(".label");
+
+									if(!labelNode) console.warn("Could not add nav entry [" + index +  "]: template has no designated label nodes.");
+
+									else
+									{
+										itemTemplate.href = ("#/" + entry.path).replace(/^#\/\//g, "#/");
+
+										if(entry.label && /<.+>/g.test(entry.label)) labelNode.innerHTML = entry.label;
+										else labelNode.textContent = (entry.label) ? entry.label : entry.path;
+
+										itemTemplate.removeAttribute("data-name");
+										labelNode.classList.remove("label");
+										
+										if(entry.options)
+										{
+											if(entry.options.classes && typeof entry.options.classes === "object" && entry.options.classes.length)
+											{
+												entry.options.classes.forEach(function(classe)
+												{
+													itemTemplate.classList.add(classe);
+												});
+											}
+										
+											if(entry.options.download) itemTemplate.setAttribute("download", "");
+
+											if(entry.options.external)
+											{
+												itemTemplate.href = entry.path;
+												itemTemplate.setAttribute("target", "_blank");
+											}
+										}
+
+										nav.innerHTML += itemTemplate.outerHTML;
+									}
+								}
+							}
+						});
+					}
+				}
+
+				nav.querySelector("[data-name='nav-item']").remove();
+
+				if(!settings.replace) settings.target.innerHTML += content.innerHTML;
+				else settings.target.outerHTML = content.innerHTML;
+			}
+		}
+	};
+	
+	App.nav.create = function(options)
+	{
+		settings = settings.extend(options);
+	};
+	
+	App.nav.add = function(options)
+	{
+		var settings = {
+			target: null,
+			items: []
+		};
+
+		settings = settings.extend(options);
+
+		if(!settings.target || !settings.target.tagName) console.warn("Could not add items to an existing nav: \"target\" pair invalid or not set.");
+
+		else if(!settings.items || typeof items !== "object") console.warn("Could not add items to an existing nav: \"items\" pair invalid or not set.");
+		
+		else
+		{
+			
+		}
+	};
+
+	App.nav.remove = function(options)
+	{
+		var settings = {
+			target: null,
+			items: []
+		};
+
+		settings = settings.extend(options);
+
+		if(!settings.target || !settings.target.tagName) console.warn("Could not remove items from an existing nav: \"target\" pair invalid or not set.");
+
+		else if(!settings.items || typeof items !== "object") console.warn("Could not remove items from an existing nav: \"items\" pair invalid or not set.");
+		
+		else
+		{
+			
+		}
+	};
+</script>
+
+<template id="nav-trigger">
+	<a href="#/" role="navigation-trigger">
+		<hr><hr><hr><hr>
+	</a>
+
+	<nav role="navigation">
+		<a data-name="nav-item" class="label"></a>
+	</nav>
+</template>

@@ -1,0 +1,38 @@
+/* window.Resolver = function()
+	{
+		App.location = new String(window.location.hash.replace(/^#/,""));
+		App.location.asString = App.location.valueOf();
+		App.location.asArray = App.location.split("/");
+
+		if(App.location.asArray[0] == "") App.location.asArray.shift();
+	};
+
+	Resolver();
+
+	window.addEventListener("hashchange", Resolver);
+
+	delete window.Resolver; */
+
+/* Hashchange page loading */
+	window.addEventListener("hashchange", function(event)
+	{
+		var path = event.newURL.split("#")[1].toLowerCase();
+
+		App.config.routes.forEach(function(route,index)
+		{
+			if(route.path.toLowerCase() != path) return;
+			else App.load(route.href, route.path, true);
+		});
+	});
+
+/* Initial page loading */
+	if(!location.hash) location.hash = "/";
+
+	else (function(path)
+	{
+		App.config.routes.forEach(function(route,index)
+		{
+			if(route.path.toLowerCase() != path) return;
+			else App.load(route.href, route.path, true);
+		});
+	})(location.hash.split("#")[1].toLowerCase());

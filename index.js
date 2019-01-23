@@ -21,21 +21,6 @@
 							};
 
 							App.config.path = meta;
-
-							window.Resolver = function()
-							{
-								App.location = new String(window.location.hash.replace(/^#/,""));
-								App.location.asString = App.location.valueOf();
-								App.location.asArray = App.location.split("/");
-
-								if(App.location.asArray[0] == "") App.location.asArray.shift();
-							};
-
-							Resolver();
-
-							window.addEventListener("hashchange", Resolver);
-
-							delete window.Resolver;
 						}
 
 						catch(error)
@@ -406,158 +391,126 @@
 
 									else
 									{
-										if(document.documentElement.classList.contains("loading")) console.warn("Load failed: previous content load not finished.");
+										var net = new XMLHttpRequest;
 
-										else
+										net.addEventListener("loadend", function(event)
 										{
-											document.documentElement.classList.add("loading");
-											document.documentElement.classList.remove("visible");
-
-											var net = new XMLHttpRequest;
-
-											net.addEventListener("load", function(event)
+											switch(net.status)
 											{
-												switch(net.status)
-												{
-													case 200:
-														var loaded = document.createElement("template");
-														loaded.innerHTML = net.response;
+												case 200:
+													App.load.response = net.response;
+													
+													/*
+													var loaded = document.createElement("template");
+													loaded.innerHTML = net.response;
 
-														loaded.content.querySelectorAll("script").forEach(function(script)
+													loaded.content.querySelectorAll("script").forEach(function(script)
+													{
+														if(!script.src)
 														{
-															if(!script.src)
-															{
-																if(!/['|"]use strict['|"]/gi.test(script.textContent)) script.textContent = '"use strict";' + script.textContent;
+															if(!/['|"]use strict['|"]/gi.test(script.textContent)) script.textContent = '"use strict";' + script.textContent;
 
-																var id = "__" +  new Date().getTime();																
-																window[id] = new Function(script.textContent);
+															var id = "__" +  new Date().getTime();																
+															window[id] = new Function(script.textContent);
 
-																window[id]();
+															window[id]();
 
-																delete window[id];
-															}
-														});
+															delete window[id];
+														}
+													});
 
-														loaded.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
+													loaded.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
+													{
+														document.documentElement.classList.add("loading-stylesheets");
+														document.documentElement.classList.remove("loaded-stylesheets");
+													});
+
+													if(!path)
+													{
+														path = href.split("/").last().split(".");
+
+														if(path[0] === "") path.shift();
+
+														if(path.length > 1)
 														{
-															document.documentElement.classList.add("loading-stylesheets");
-															document.documentElement.classList.remove("loaded-stylesheets");
-														});
+															path.pop();
 
-														if(!path)
-														{
-															path = href.split("/").last().split(".");
-
-															if(path[0] === "") path.shift();
-
-															if(path.length > 1)
-															{
-																path.pop();
-
-																path = path.join(".");
-															}
-
-															else path = path[0];
+															path = path.join(".");
 														}
 
-														if(!silent) location.hash = "/" + path;
+														else path = path[0];
+													}
 
-														if(loaded.content.querySelector("title"))
+													if(!silent) location.hash = "/" + path;
+
+													if(loaded.content.querySelector("title"))
+													{
+														document.title = loaded.content.querySelector("title").textContent;
+
+														loaded.content.querySelector("title").remove();
+													}
+
+													App.content.innerHTML = loaded.innerHTML;
+
+													var loadingStylesheets = 0;
+
+													App.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
+													{
+														loadingStylesheets++;
+
+														stylesheet.addEventListener("load", function(event)
 														{
-															document.title = loaded.content.querySelector("title").textContent;
+															loadingStylesheets--;
 
-															loaded.content.querySelector("title").remove();
-														}
-
-														App.content.innerHTML = loaded.innerHTML;
-
-														var loadingStylesheets = 0;
-
-														App.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
-														{
-															loadingStylesheets++;
-
-															stylesheet.addEventListener("load", function(event)
+															if(loadingStylesheets <= 0)
 															{
-																loadingStylesheets--;
-
-																if(loadingStylesheets <= 0)
-																{
-																	document.documentElement.classList.add("loaded-stylesheets");
-																	document.documentElement.classList.remove("loading-stylesheets");
-																}
-															});
-														});
-
-														window.Verify = function()
-														{
-															if(!document.documentElement.classList.contains("loaded-stylesheets")) window.requestAnimationFrame(window.Verify);
-
-															else
-															{
-																if(App.config.settings.transitions && App.config.settings.transitions.enabled)
-																{
-																	App.config.settings.transitions.duration = (isNaN(App.config.settings.transitions.duration)) ? 0 : App.config.settings.transitions.duration;
-																}
-																
-																document.documentElement.classList.add("visible");
-
-																delete window.Verify;
+																document.documentElement.classList.add("loaded-stylesheets");
+																document.documentElement.classList.remove("loading-stylesheets");
 															}
-														};
+														});
+													});
 
-														window.Verify();
+													window.Verify = function()
+													{
+														if(!document.documentElement.classList.contains("loaded-stylesheets")) window.requestAnimationFrame(window.Verify);
 
-														break;
+														else
+														{
+															if(App.config.settings.transitions && App.config.settings.transitions.enabled)
+															{
+																App.config.settings.transitions.duration = (isNaN(App.config.settings.transitions.duration)) ? 0 : App.config.settings.transitions.duration;
+															}
 
-													default:
-														console.warn("Page could not be loaded: error " + net.status + ".");
+															delete window.Verify;
+														}
+													};
 
-														break;
-												}
-											});
+													window.Verify(); */
 
-											net.addEventListener("error", function(event)
-											{
-												console.warn("Page could not be loaded: local network error.");
-											});
+													break;
+													
+												case 0:
+													console.warn("Page could not be loaded: client offline.");
 
-											net.addEventListener("loadend", function(event)
-											{
-												document.documentElement.classList.remove("loading");
-											});
+													break;
 
-											net.open("GET", href, true);
-											net.send();
-										}
+												default:
+													console.warn("Page could not be loaded: error " + net.status + ".");
+
+													break;
+											}
+											
+											document.documentElement.classList.remove("loading");
+										});
+
+										net.open("GET", href, true);
+										net.send();
 									}
 								}
 							}
 						};
-
-					/* Hashchange page loading */
-						window.addEventListener("hashchange", function(event)
-						{
-							var path = event.newURL.split("#")[1].toLowerCase();
-
-							App.config.routes.forEach(function(route,index)
-							{
-								if(route.path.toLowerCase() != path) return;
-								else App.load(route.href, route.path, true);
-							});
-						});
-
-					/* Initial page loading */
-						if(!location.hash) location.hash = "/";
-
-						else (function(path)
-						{
-							App.config.routes.forEach(function(route,index)
-							{
-								if(route.path.toLowerCase() != path) return;
-								else App.load(route.href, route.path, true);
-							});
-						})(location.hash.split("#")[1].toLowerCase());
+						
+						App.load.response = null;
 
 					/* Cleanup */
 						delete window[id];

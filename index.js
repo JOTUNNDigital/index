@@ -20,6 +20,8 @@
 								race: []
 							};
 
+							App.config.path = meta;
+
 							window.Resolver = function()
 							{
 								App.location = new String(window.location.hash.replace(/^#/,""));
@@ -27,7 +29,7 @@
 								App.location.asArray = App.location.split("/");
 
 								if(App.location.asArray[0] == "") App.location.asArray.shift();
-							}
+							};
 
 							Resolver();
 
@@ -42,10 +44,10 @@
 						}
 
 						break;
-					
+
 					case 0:
 						throw "App bootstrap failed: client offline.";
-						
+
 						break;
 
 					default:
@@ -132,7 +134,7 @@
 		{
 			return (this[this.length - 1]) ? this[this.length - 1] : null;
 		};
-		
+
 	/* Array.remove() */
 		Array.prototype.remove = function()
 		{
@@ -208,7 +210,7 @@
 							element.setAttribute("role","main");
 
 							document.body.appendChild(element);
-							
+
 							return element;
 						})(document.createElement("main"));
 
@@ -223,7 +225,7 @@
 									.replace(/\[@filesystem\.vendor\]/gi, App.config.filesystem.vendor);
 							}
 						});
-					
+
 					/* Feature loader */
 						App.add = function(feature)
 						{
@@ -278,7 +280,7 @@
 												if(fragment.events)
 												{
 													App[fragment.id].events = fragment.events;
-													
+
 													if(App[fragment.id].events.forEach)
 													{
 														App[fragment.id].events.forEach(function(event)
@@ -348,7 +350,7 @@
 							else
 							{
 								href = href.replace(/\[@filesystem\.content\]/gi, App.config.filesystem.content);
-								
+
 								var context = (/\.(css|less|sass|scss)$/gi.test(href)) ? "stylesheet" : (/\.(js)$/gi.test(href)) ? "script" : "page";
 
 								if(context === "stylesheet")
@@ -371,7 +373,7 @@
 
 									document.head.appendChild(link);
 								}
-								
+
 								else
 								{
 									if(context === "script")
@@ -389,7 +391,7 @@
 
 												if(src[0] == src[1]) exists = true;
 											});
-											
+
 											if(!exists)
 											{
 												var element = document.createElement("script");
@@ -405,10 +407,11 @@
 									else
 									{
 										if(document.documentElement.classList.contains("loading")) console.warn("Load failed: previous content load not finished.");
-										
+
 										else
 										{
 											document.documentElement.classList.add("loading");
+											document.documentElement.classList.remove("visible");
 
 											var net = new XMLHttpRequest;
 
@@ -419,7 +422,7 @@
 													case 200:
 														var loaded = document.createElement("template");
 														loaded.innerHTML = net.response;
-														
+
 														loaded.content.querySelectorAll("script").forEach(function(script)
 														{
 															if(!script.src)
@@ -430,26 +433,27 @@
 																window[id] = new Function(script.textContent);
 
 																window[id]();
-																
+
 																delete window[id];
 															}
 														});
-														
+
 														loaded.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
 														{
 															document.documentElement.classList.add("loading-stylesheets");
+															document.documentElement.classList.remove("loaded-stylesheets");
 														});
 
 														if(!path)
 														{
 															path = href.split("/").last().split(".");
-															
+
 															if(path[0] === "") path.shift();
 
 															if(path.length > 1)
 															{
 																path.pop();
-																
+
 																path = path.join(".");
 															}
 
@@ -457,25 +461,55 @@
 														}
 
 														if(!silent) location.hash = "/" + path;
-														
+
 														if(loaded.content.querySelector("title"))
 														{
 															document.title = loaded.content.querySelector("title").textContent;
-															
+
 															loaded.content.querySelector("title").remove();
 														}
 
-														console.log(loaded.content);
+														App.content.innerHTML = loaded.innerHTML;
 
-														//App.content.innerHTML = loaded.content;
-														
+														var loadingStylesheets = 0;
+
 														App.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
 														{
-															console.log(stylesheet.sheet);
+															loadingStylesheets++;
+
+															stylesheet.addEventListener("load", function(event)
+															{
+																loadingStylesheets--;
+
+																if(loadingStylesheets <= 0)
+																{
+																	document.documentElement.classList.add("loaded-stylesheets");
+																	document.documentElement.classList.remove("loading-stylesheets");
+																}
+															});
 														});
 
+														window.Verify = function()
+														{
+															if(!document.documentElement.classList.contains("loaded-stylesheets")) window.requestAnimationFrame(window.Verify);
+
+															else
+															{
+																if(App.config.settings.transitions && App.config.settings.transitions.enabled)
+																{
+																	App.config.settings.transitions.duration = (isNaN(App.config.settings.transitions.duration)) ? 0 : App.config.settings.transitions.duration;
+																}
+																
+																document.documentElement.classList.add("visible");
+
+																delete window.Verify;
+															}
+														};
+
+														window.Verify();
+
 														break;
-													
+
 													default:
 														console.warn("Page could not be loaded: error " + net.status + ".");
 

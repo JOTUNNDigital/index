@@ -1,13 +1,14 @@
 {
 	"--envs": [
+		"//localhost/index/",
 		"http://index.local/",
 		"https://demo.jotunn.org/index/",
 		"https://gitcdn.xyz/repo/JOTUNNDigital/index-cdn/master/"
 	],
 
-	"repository": "http://index.local/",
+	"repository": "//localhost/index/",
 	"filesystem": {
-		"base": "http://index.local/",
+		"base": "//localhost/index/",
 
 		"assets": "app/assets",
 		"content": "app/content",
@@ -27,5 +28,11 @@
 			"path": "/test",
 			"href": "[@filesystem.content]/test.html"
 		}
-	]
+	],
+	"settings": {
+		"transitions": {
+			"enabled": true,
+			"duration": 250
+		}
+	}
 }

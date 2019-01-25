@@ -7,6 +7,7 @@
 	],
 
 	"repository": "//localhost/index/",
+
 	"filesystem": {
 		"base": "//localhost/index/",
 
@@ -14,25 +15,26 @@
 		"content": "app/content",
 		"vendor": "app/vendor"
 	},
+	
+	"autoload": [
+		"[@filesystem.assets]/css/basic.css"
+	],
+
 	"features": [
 		"swipe",
 		"net",
+		"navigate",
 		"dialog"
 	],
+
 	"routes": [
 		{
 			"path": "/",
-			"href": "[@filesystem.content]/"
+			"href": "[@filesystem.content]/index.html"
 		},
 		{
 			"path": "/test",
 			"href": "[@filesystem.content]/test.html"
 		}
-	],
-	"settings": {
-		"transitions": {
-			"enabled": true,
-			"duration": 250
-		}
-	}
+	]
 }

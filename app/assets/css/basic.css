@@ -1,0 +1,24 @@
+*
+{
+	position: relative;
+}
+
+html,
+body
+{
+	background: red;
+
+	margin: 0;
+	padding: 0;
+
+	height: 100%;
+	width: 100%;
+}
+
+main
+{
+	display: flex;
+	flex-flow: column nowrap;
+
+	min-height: 100%;
+}

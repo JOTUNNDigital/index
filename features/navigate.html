@@ -1,0 +1,102 @@
+<!index feature>
+
+<!-- 
+	App.config.settings.navigation: "hash" | "route"
+-->
+
+<meta name="id" content="navigate">
+<meta name="events" content="navigate">
+
+<style>
+	html main
+	{
+		transition: all .25s ease .5s;
+
+		opacity: 1;
+	}
+
+	html.loading main
+	{
+		transition-delay: 0s;
+
+		opacity: 0;
+	}
+</style>
+
+<script>
+	App.[@feature.id].hash = function(path)
+	{
+		App.config.routes.forEach(function(route, index)
+		{
+			if(route.path.toLowerCase() === path.toLowerCase())
+			{
+				App.load(route.href);
+
+				var filename = route.href.split("/").last();
+				var verify = function()
+				{
+					if(!App.loaded.html[filename]) window.requestAnimationFrame(verify);
+
+					else
+					{
+						document.documentElement.classList.add("loading");
+
+						var html = App.loaded.html[filename];
+
+						html.content.querySelectorAll("script").forEach(function(script)
+						{
+							if(!script.src)
+							{
+								if(!/['|"]use strict['|"]/gi.test(script.textContent)) script.textContent = '"use strict";' + script.textContent;
+
+								var id = "__" +  new Date().getTime();																
+								window[id] = new Function(script.textContent);
+
+								window[id]();
+
+								delete window[id];
+							}
+						});
+
+						html.content.querySelectorAll("title").forEach(function(title)
+						{
+							document.title = title.textContent;
+
+							title.remove();
+						});
+						
+						html.content.querySelectorAll("meta[name]").forEach(function(meta)
+						{
+							if(!document.head.querySelector("meta[name='" + meta.name.toLowerCase() + "']"))
+							{
+								var node = document.createElement("meta");
+								node.name = meta.name.toLowerCase();
+								node.content = meta.content;
+								
+								document.head.appendChild(node);
+							}
+						
+							document.head.querySelectorAll("meta[name='" + meta.name.toLowerCase() + "']").forEach(function(node)
+							{
+								node.content = meta.content;
+							});
+
+							meta.remove();
+						});
+
+						App.content.innerHTML = html.innerHTML.replace(/<!--[\s\S]*?-->/g, "");
+
+						document.documentElement.classList.remove("loading");
+					}
+				};
+
+				verify();
+			}
+		});
+	};
+
+	App.[@feature.id].rewrite = function(path)
+	{
+		
+	};
+</script>

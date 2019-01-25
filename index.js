@@ -199,16 +199,21 @@
 							return element;
 						})(document.createElement("main"));
 
-					/* Route path variables */
+					/* Path variables */
 						App.config.routes.forEach(function(route)
 						{
-							if(App.config.filesystem.content)
-							{
-								route.href = route.href
-									.replace(/\[@filesystem\.assets\]/gi, App.config.filesystem.assets)
-									.replace(/\[@filesystem\.content\]/gi, App.config.filesystem.content)
-									.replace(/\[@filesystem\.vendor\]/gi, App.config.filesystem.vendor);
-							}
+							route.href = route.href
+								.replace(/\[@filesystem\.assets\]/gi, App.config.filesystem.assets)
+								.replace(/\[@filesystem\.content\]/gi, App.config.filesystem.content)
+								.replace(/\[@filesystem\.vendor\]/gi, App.config.filesystem.vendor);
+						});
+
+						App.config.autoload.forEach(function(asset,index)
+						{
+							App.config.autoload[index] = asset
+								.replace(/\[@filesystem\.assets\]/gi, App.config.filesystem.assets)
+								.replace(/\[@filesystem\.content\]/gi, App.config.filesystem.content)
+								.replace(/\[@filesystem\.vendor\]/gi, App.config.filesystem.vendor);
 						});
 
 					/* Feature loader */
@@ -321,14 +326,20 @@
 							}
 						};
 
-					/* Auto-load features in app manifest */
+					/* Autoload features in app manifest */
 						App.config.features.forEach(function(feature)
 						{
 							App.add(feature);
 						});
 
 					/* Page & Asset Loader */
-						App.load = function(href,path,silent)
+						App.loaded = {
+							html: [],
+							css: [],
+							js: []
+						};
+
+						App.load = function(href,path)
 						{
 							if(!href || (href && typeof href != "string")) console.warn("Load failed: no reference.");
 
@@ -357,6 +368,8 @@
 									}
 
 									document.head.appendChild(link);
+
+									App.loaded.css.push(href);
 								}
 
 								else
@@ -383,6 +396,8 @@
 												element.src = href;
 
 												document.head.appendChild(element);
+
+												App.loaded.js.push(href);
 											}
 
 											script.remove();
@@ -398,94 +413,14 @@
 											switch(net.status)
 											{
 												case 200:
-													App.load.response = net.response;
-													
-													/*
 													var loaded = document.createElement("template");
+													loaded.setAttribute("data-href", href);
+													
+													var filename = href.split("/").last();
+
 													loaded.innerHTML = net.response;
 
-													loaded.content.querySelectorAll("script").forEach(function(script)
-													{
-														if(!script.src)
-														{
-															if(!/['|"]use strict['|"]/gi.test(script.textContent)) script.textContent = '"use strict";' + script.textContent;
-
-															var id = "__" +  new Date().getTime();																
-															window[id] = new Function(script.textContent);
-
-															window[id]();
-
-															delete window[id];
-														}
-													});
-
-													loaded.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
-													{
-														document.documentElement.classList.add("loading-stylesheets");
-														document.documentElement.classList.remove("loaded-stylesheets");
-													});
-
-													if(!path)
-													{
-														path = href.split("/").last().split(".");
-
-														if(path[0] === "") path.shift();
-
-														if(path.length > 1)
-														{
-															path.pop();
-
-															path = path.join(".");
-														}
-
-														else path = path[0];
-													}
-
-													if(!silent) location.hash = "/" + path;
-
-													if(loaded.content.querySelector("title"))
-													{
-														document.title = loaded.content.querySelector("title").textContent;
-
-														loaded.content.querySelector("title").remove();
-													}
-
-													App.content.innerHTML = loaded.innerHTML;
-
-													var loadingStylesheets = 0;
-
-													App.content.querySelectorAll("link[href][rel='stylesheet']").forEach(function(stylesheet)
-													{
-														loadingStylesheets++;
-
-														stylesheet.addEventListener("load", function(event)
-														{
-															loadingStylesheets--;
-
-															if(loadingStylesheets <= 0)
-															{
-																document.documentElement.classList.add("loaded-stylesheets");
-																document.documentElement.classList.remove("loading-stylesheets");
-															}
-														});
-													});
-
-													window.Verify = function()
-													{
-														if(!document.documentElement.classList.contains("loaded-stylesheets")) window.requestAnimationFrame(window.Verify);
-
-														else
-														{
-															if(App.config.settings.transitions && App.config.settings.transitions.enabled)
-															{
-																App.config.settings.transitions.duration = (isNaN(App.config.settings.transitions.duration)) ? 0 : App.config.settings.transitions.duration;
-															}
-
-															delete window.Verify;
-														}
-													};
-
-													window.Verify(); */
+													App.loaded.html[filename] = loaded;
 
 													break;
 													
@@ -510,7 +445,11 @@
 							}
 						};
 						
-						App.load.response = null;
+					/* Autoload assets */
+						if(App.config.autoload && Array.isArray(App.config.autoload)) App.config.autoload.forEach(function(asset)
+						{
+							App.load(asset)
+						});
 
 					/* Cleanup */
 						delete window[id];

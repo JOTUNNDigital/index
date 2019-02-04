@@ -1,7 +1,7 @@
 <!index feature>
 
 <!-- 
-	App.config.settings.navigation: "hash" | "route"
+	App.config.settings.navigation: "hash" | "rewrite"
 -->
 
 <meta name="id" content="navigate">
@@ -10,7 +10,7 @@
 <style>
 	html main
 	{
-		transition: all .25s ease .5s;
+		transition: all .5s ease;
 
 		opacity: 1;
 	}
@@ -26,10 +26,17 @@
 <script>
 	App.[@feature.id].hash = function(path)
 	{
+		path = path.replace(/^#/gi, "");
+		var found = false;
+
 		App.config.routes.forEach(function(route, index)
 		{
 			if(route.path.toLowerCase() === path.toLowerCase())
 			{
+				found = true;
+
+				document.documentElement.classList.add("loading");
+
 				App.load(route.href);
 
 				var filename = route.href.split("/").last();
@@ -39,9 +46,39 @@
 
 					else
 					{
-						document.documentElement.classList.add("loading");
-
 						var html = App.loaded.html[filename];
+
+						html.content.querySelectorAll("title").forEach(function(title)
+						{
+							document.title = title.textContent;
+						});
+
+						html.content.querySelectorAll("meta[name]").forEach(function(meta)
+						{
+							if(!document.head.querySelector("meta[name='" + meta.name.toLowerCase() + "']"))
+							{
+								var node = document.createElement("meta");
+								node.name = meta.name.toLowerCase();
+								node.content = meta.content;
+
+								document.head.appendChild(node);
+							}
+
+							document.head.querySelectorAll("meta[name='" + meta.name.toLowerCase() + "']").forEach(function(node)
+							{
+								node.content = meta.content;
+							});
+
+							meta.remove();
+						});
+
+						history.pushState({}, document.title, "#" + path);
+
+						App.location = new String(window.location.hash.replace(/^#/,""));
+						App.location.asString = App.location.valueOf();
+						App.location.asArray = App.location.split("/");
+
+						if(App.location.asArray[0] == "") App.location.asArray.shift();
 
 						html.content.querySelectorAll("script").forEach(function(script)
 						{
@@ -58,13 +95,59 @@
 							}
 						});
 
+						App.content.innerHTML = html.innerHTML.replace(/<!--[\s\S]*?-->/g, "");
+
+						document.documentElement.classList.remove("loading");
+
+						App.[@feature.id].events.navigate.pathname = path;
+						App.[@feature.id].events.navigate.success = true;
+
+						document.dispatchEvent(App.[@feature.id].events.navigate);
+					}
+				};
+
+				verify();
+			}
+		});
+
+		if(!found)
+		{
+			console.warn("Could not navigate to page: route not found.");
+
+			App.[@feature.id].events.navigate.success = false;
+
+			document.dispatchEvent(App.[@feature.id].events.navigate);
+		}
+	};
+
+	App.[@feature.id].rewrite = function(path)
+	{
+		var found = false;
+
+		App.config.routes.forEach(function(route, index)
+		{
+			if(route.path.toLowerCase() === path.toLowerCase())
+			{
+				found = true;
+			
+				document.documentElement.classList.add("loading");
+
+				App.load(route.href);
+
+				var filename = route.href.split("/").last();
+				var verify = function()
+				{
+					if(!App.loaded.html[filename]) window.requestAnimationFrame(verify);
+
+					else
+					{
+						var html = App.loaded.html[filename];
+
 						html.content.querySelectorAll("title").forEach(function(title)
 						{
 							document.title = title.textContent;
-
-							title.remove();
 						});
-						
+
 						html.content.querySelectorAll("meta[name]").forEach(function(meta)
 						{
 							if(!document.head.querySelector("meta[name='" + meta.name.toLowerCase() + "']"))
@@ -72,10 +155,10 @@
 								var node = document.createElement("meta");
 								node.name = meta.name.toLowerCase();
 								node.content = meta.content;
-								
+
 								document.head.appendChild(node);
 							}
-						
+
 							document.head.querySelectorAll("meta[name='" + meta.name.toLowerCase() + "']").forEach(function(node)
 							{
 								node.content = meta.content;
@@ -84,19 +167,63 @@
 							meta.remove();
 						});
 
+						history.pushState({}, document.title, path);
+
+						App.location = new String(window.location.pathname);
+						App.location.asString = App.location.valueOf();
+						App.location.asArray = App.location.split("/");
+
+						if(App.location.asArray[0] == "") App.location.asArray.shift();
+
+						html.content.querySelectorAll("script").forEach(function(script)
+						{
+							if(!script.src)
+							{
+								if(!/['|"]use strict['|"]/gi.test(script.textContent)) script.textContent = '"use strict";' + script.textContent;
+
+								var id = "__" +  new Date().getTime();																
+								window[id] = new Function(script.textContent);
+
+								window[id]();
+
+								delete window[id];
+							}
+						});
+
 						App.content.innerHTML = html.innerHTML.replace(/<!--[\s\S]*?-->/g, "");
 
 						document.documentElement.classList.remove("loading");
+
+						App.[@feature.id].events.navigate.pathname = path;
+						App.[@feature.id].events.navigate.success = true;
+
+						document.dispatchEvent(App.[@feature.id].events.navigate);
 					}
 				};
 
 				verify();
 			}
 		});
+
+		if(!found)
+		{
+			console.warn("Could not navigate to page: route not found.");
+
+			App.[@feature.id].events.navigate.success = false;
+
+			document.dispatchEvent(App.[@feature.id].events.navigate);
+		}
 	};
 
-	App.[@feature.id].rewrite = function(path)
+	if(App.config.settings && App.config.settings.navigation && App.config.settings.navigation.toLowerCase() === "hash")
 	{
-		
-	};
+		window.addEventListener("hashchange", function(event)
+		{
+			App.navigate.hash(window.location.hash);
+		});
+
+		App.navigate.hash((window.location.hash === "") ? "#/" : window.location.hash);
+	}
+
+	else App.navigate.rewrite(window.location.pathname);
 </script>

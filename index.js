@@ -216,6 +216,16 @@
 								.replace(/\[@filesystem\.vendor\]/gi, App.config.filesystem.vendor);
 						});
 
+					/* Path resolution */
+						App.location = (App.config.settings && App.config.settings.navigation && App.config.settings.navigation.toLowerCase() === "hash") ? new String(window.location.hash.replace(/^#/,"")) : new String(window.location.pathname);
+
+						if(App.location == "") App.location = new String("/");
+						
+						App.location.asString = App.location.valueOf();
+						App.location.asArray = App.location.split("/");
+
+						if(App.location.asArray[0] == "") App.location.asArray.shift();
+
 					/* Feature loader */
 						App.add = function(feature)
 						{
@@ -438,7 +448,7 @@
 											document.documentElement.classList.remove("loading");
 										});
 
-										net.open("GET", href, true);
+										net.open("GET", href + "?" + String(new Date().getTime()), true);
 										net.send();
 									}
 								}

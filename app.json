@@ -36,5 +36,9 @@
 			"path": "/test",
 			"href": "[@filesystem.content]/test.html"
 		}
-	]
+	],
+	
+	"settings": {
+		"navigation": "rewrite"
+	}
 }

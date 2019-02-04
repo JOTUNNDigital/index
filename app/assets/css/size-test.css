@@ -1,6 +1,6 @@
 main
 {
-	background: silver;
+	background: rgba(120,60,0,.25);
 }
 
 main:before

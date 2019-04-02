@@ -1,0 +1,25 @@
+<!index feature>
+
+<meta name="id" content="supports">
+<meta name="events" content="supports">
+
+<script>
+	App.[@feature.id].canvas = !!document.createElement('canvas').getContext;
+	App.[@feature.id].ES6 = (typeof Symbol == "undefined") ? false : true;
+	App.[@feature.id].touch = new Boolean("ontouchstart" in window || window.DocumentTouch && document instanceof window.DocumentTouch || navigator.maxTouchPoints > 0 || window.navigator.msMaxTouchPoints > 0);
+
+	window.addEventListener("resize", function()
+	{
+		App.[@feature.id].touch = new Boolean("ontouchstart" in window || window.DocumentTouch && document instanceof window.DocumentTouch || navigator.maxTouchPoints > 0 || window.navigator.msMaxTouchPoints > 0);
+	});
+</script>
+
+<template id="nav-trigger">
+	<a href="#/" role="navigation-trigger">
+		<hr><hr><hr><hr>
+	</a>
+
+	<nav role="navigation">
+		<a data-name="nav-item" class="label"></a>
+	</nav>
+</template>

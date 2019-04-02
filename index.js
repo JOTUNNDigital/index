@@ -48,6 +48,40 @@
 	})(document.querySelector("meta[name='config'][content]"));
 
 /* Prototype Updates & Polyfills */
+	/* CustomEvent() */
+	/* Documentation: https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent */
+		(function()
+		{
+			if(typeof window.CustomEvent === "function") return false;
+
+			function CustomEvent(event, params)
+			{
+				params = params || {
+					bubbles: false, 
+					cancelable: false,
+					detail: undefined
+				};
+
+				var evt = document.createEvent("CustomEvent");
+
+				evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+
+				return evt;
+			}
+
+			CustomEvent.prototype = window.Event.prototype;
+
+			window.CustomEvent = CustomEvent;
+		})();
+
+	/* Window.ScrollX / Window.ScrollY */
+	/* Documentation: https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollX, https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollY */
+		if(Window && (!Window.prototype.scrollY || !Window.prototype.scrollX))
+		{
+			if(Window && !Window.prototype.scrollY) window.scrollY = window.pageYOffset || document.documentElement.scrollTop;
+			if(Window && !Window.prototype.scrollX) window.scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+		}
+
 	/* Array.forEach() */
 	/* Documentation: //developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach */
 		if(!Array.prototype.forEach) Array.prototype.forEach = function(callback)
@@ -82,7 +116,7 @@
 
 	/* Array.extend() */
 	/* Non-Standard: Allows two objects to be merged, with duplicate overwriting */
-	/* Usage: a = a.extend(b) */
+	/* Example Usage: a = a.extend(b) */
 		Object.prototype.extend = function()
 		{
 			var a = this,
@@ -114,13 +148,18 @@
 
 	/* Array.last() */
 	/* Non-Standard: Returns the last item of an array */
-	/* Usage: b = a.last() */
+	/* Example Usage: b = a.last() */
 		Array.prototype.last = function()
 		{
 			return (this[this.length - 1]) ? this[this.length - 1] : null;
 		};
 
 	/* Array.remove() */
+	/* Non-Standard: Removes an item from an array via direct reference. */
+	/* Example Usage: 
+		var x = ["a","b","c"];
+		x[0].remove();
+	*/
 		Array.prototype.remove = function()
 		{
 			var s, 
@@ -143,7 +182,7 @@
 		if(typeof NodeList.prototype.forEach !== "function") NodeList.prototype.forEach = Array.prototype.forEach;
 
 	/* Object.forEach() */
-	/* Technically this is an out-of-spec feature, but it really should have been included in spec just for convenience */
+	/* Non-Standard: Works exactly the same as Array.forEach, just for Objects. */
 		if(!Object.prototype.forEach) Object.defineProperty(Object.prototype, "forEach", {
 			value: function (callback, thisArg)
 			{
@@ -152,6 +191,37 @@
 				thisArg = thisArg || window;
 
 				for (var key in this) if(this.hasOwnProperty(key)) callback.call(thisArg, this[key], key, this);
+			}
+		});
+
+	/* Element.interactive */
+	/* Non-Standard: This applies to elements that users can directly manipulate - buttons, inputs, editable content, etc. */
+	/* Example Usage: if(window.querySelector("#myButton").interactive) { ... } */
+		window.Object.defineProperty(Element.prototype, "interactive",
+		{
+			get: function()
+			{
+				return (this && ((this.nodeName === "A" || ((this.nodeName === "BUTTON" || this.nodeName === "INPUT" || this.nodeName === "SELECT" || this.nodeName === "TEXTAREA" || this.contentEditable) && !this.disabled)) || (this.tabIndex && this.tabIndex > 0))) ? true : false;
+			}
+		});
+		
+	/* Element.visible */
+	/* Non-Standard: This behaves very similarly to jQuery's ".is(':visible')" selector, except it must be called as a boolean call and not a leveragable selector. */
+	/* Example Usage: if(window.querySelector("#myElement").visible) { ... } */
+		window.Object.defineProperty(Element.prototype, "visible",
+		{
+			get: function()
+			{
+				var element = this;
+
+				while(element && element.nodeType === 1)
+				{
+					if(element.style && element.style.display === "none" || element.type === "hidden" || (!element.offsetWidth || !element.offsetHeight) || !element.getClientRects().length) return false;
+
+					element = element.parentNode;
+				}
+
+				return true;
 			}
 		});
 
@@ -188,6 +258,9 @@
 				{
 					/* Redundant fire control */
 						document.documentElement.classList.add("app");
+					
+					/* Simple identifier for App version */
+						App.version = "1.0";
 
 					/* Find content area */	
 						App.content = (document.querySelector("main")) ? document.querySelector("main") : (document.querySelector("[role='main']")) ? document.querySelector("[role='main']") : (function(element)
@@ -264,7 +337,7 @@
 														{
 															var id = (fragment.id === event && events.length === 1) ? event : fragment.id + "." + event;
 
-															fragment.events[event] = new Event(id, {
+															fragment.events[event] = new CustomEvent(id, {
 																bubbles: 1,
 																cancelable: 1
 															});

@@ -47,13 +47,14 @@
 					else
 					{
 						var html = App.loaded.html[filename];
+						var htmlContent = (html.content) ? html.content : html;
 
-						html.content.querySelectorAll("title").forEach(function(title)
+						htmlContent.querySelectorAll("title").forEach(function(title)
 						{
 							document.title = title.textContent;
 						});
 
-						html.content.querySelectorAll("meta[name]").forEach(function(meta)
+						htmlContent.querySelectorAll("meta[name]").forEach(function(meta)
 						{
 							if(!document.head.querySelector("meta[name='" + meta.name.toLowerCase() + "']"))
 							{
@@ -80,7 +81,7 @@
 
 						if(App.location.asArray[0] == "") App.location.asArray.shift();
 
-						html.content.querySelectorAll("script").forEach(function(script)
+						htmlContent.querySelectorAll("script").forEach(function(script)
 						{
 							if(!script.src)
 							{
@@ -142,13 +143,14 @@
 					else
 					{
 						var html = App.loaded.html[filename];
+						var htmlContent = (html.content) ? html.content : html;
 
-						html.content.querySelectorAll("title").forEach(function(title)
+						htmlContent.querySelectorAll("title").forEach(function(title)
 						{
 							document.title = title.textContent;
 						});
 
-						html.content.querySelectorAll("meta[name]").forEach(function(meta)
+						htmlContent.querySelectorAll("meta[name]").forEach(function(meta)
 						{
 							if(!document.head.querySelector("meta[name='" + meta.name.toLowerCase() + "']"))
 							{
@@ -175,7 +177,7 @@
 
 						if(App.location.asArray[0] == "") App.location.asArray.shift();
 
-						html.content.querySelectorAll("script").forEach(function(script)
+						htmlContent.querySelectorAll("script").forEach(function(script)
 						{
 							if(!script.src)
 							{

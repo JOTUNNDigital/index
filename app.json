@@ -10,7 +10,6 @@
 
 	"filesystem": {
 		"base": "//localhost/index/",
-
 		"assets": "app/assets",
 		"content": "app/content",
 		"vendor": "app/vendor"

@@ -261,6 +261,28 @@
 					
 					/* Simple identifier for App version */
 						App.version = "1.0";
+					
+					/* Check if localhost or not */
+						App.local = (function(status)
+						{
+							let patterns = [
+								/^10\./,
+								/^127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-8]{1,3}/,
+								/^172\.1[6-9]|2[0-9]|3[0-1]\./,
+								/^192\.168\./,
+								/^localhost$/i,
+								/\.(local|localdomain|localhost)$/i
+							];
+							
+							patterns.forEach(function(pattern)
+							{
+								if(pattern.test(location.hostname)) status = true;
+
+								return;
+							});
+							
+							return status;
+						})(false);
 
 					/* Find content area */	
 						App.content = (document.querySelector("main")) ? document.querySelector("main") : (document.querySelector("[role='main']")) ? document.querySelector("[role='main']") : (function(element)
